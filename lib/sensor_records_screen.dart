@@ -14,8 +14,8 @@ class SensorRecordsScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection("Sensor_kayitlari")
-            .where("sensor_id", isEqualTo: sensorId)
-            .orderBy("tarih", descending: true)
+            .where("Sensor_id", isEqualTo: sensorId)
+            .orderBy("Tarih", descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -28,11 +28,11 @@ class SensorRecordsScreen extends StatelessWidget {
           return ListView(
             children: snapshot.data!.docs.map((doc) {
               Map<String, dynamic> record = doc.data() as Map<String, dynamic>;
-              Timestamp timestamp = record["tarih"];
+              Timestamp timestamp = record["Tarih"];
               String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(timestamp.toDate());
 
               return ListTile(
-                title: Text("Değer: ${record['deger']}"),
+                title: Text("Değer: ${record['Deger']}"),
                 subtitle: Text("Tarih: $formattedDate"),
               );
             }).toList(),

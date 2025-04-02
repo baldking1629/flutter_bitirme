@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'sensor_records_screen.dart'; // Sensör kayıtlarını gösterecek sayfa
+import 'sensor_edit_screen.dart'; // Sensör düzenleme sayfası
 
 class SensorDetailScreen extends StatelessWidget {
   final String tarlaId;
@@ -29,7 +30,32 @@ class SensorDetailScreen extends StatelessWidget {
               return ListTile(
                 title: Text(sensor['Sensor_tipi'] ?? "Bilinmeyen Sensör"),
                 subtitle: Text("Konum: ${sensor['Konum'] ?? "Bilinmeyen"}"),
-                trailing: Icon(Icons.arrow_forward_ios),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SensorEditScreen(sensorId: doc.id, tarlaId: tarlaId,),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        await FirebaseFirestore.instance
+                            .collection("Sensorler")
+                            .doc(doc.id)
+                            .delete();
+                      },
+                    ),
+                  ],
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -42,6 +68,18 @@ class SensorDetailScreen extends StatelessWidget {
             }).toList(),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Sensör ekleme sayfasına yönlendirme
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SensorEditScreen(tarlaId: tarlaId),
+            ),
+          );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }

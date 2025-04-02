@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'field_screen.dart';
-import 'field_list_screen.dart';
+import 'sensor_graph_screen.dart';
+import 'field_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -11,26 +11,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final User? user = FirebaseAuth.instance.currentUser;
-  Map<String, dynamic>? userData;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserData(); // Kullanıcı bilgilerini Firestore'dan çek
-  }
-
-  Future<void> _fetchUserData() async {
-    if (user != null) {
-      DocumentSnapshot userDoc =
-          await FirebaseFirestore.instance.collection('Kullanicilar').doc(user!.uid).get();
-
-      if (userDoc.exists) {
-        setState(() {
-          userData = userDoc.data() as Map<String, dynamic>?;
-        });
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,37 +26,71 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      body: Center(
-        child: userData == null
-            ? CircularProgressIndicator() // Veriler yüklenene kadar gösterilecek loading animasyonu
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (userData!['photoUrl'] != null)
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(userData!['photoUrl']),
-                      radius: 40,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("Tarlalar")
+            .where("Kullanici_id", isEqualTo: user?.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text("Henüz tarlanız yok."));
+          }
+      
+          return ListView(
+            padding: EdgeInsets.all(10),
+            children: snapshot.data!.docs.map((doc) {
+              var field = doc.data() as Map<String, dynamic>;
+              String fieldId = doc.id;
+                
+              return Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                margin: EdgeInsets.symmetric(vertical: 8),
+                elevation: 4,
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text(field["Tarla_ismi"] ?? "Bilinmeyen Tarla"),
+                      subtitle: Text("Konum: ${field['Konum']} - Alan: ${field['Boyut']} hektar"),
+                      trailing: Icon(Icons.arrow_forward_ios),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FieldDetailScreen(fieldId: fieldId),
+                          ),
+                        );
+                      },
                     ),
-                  SizedBox(height: 10),
-                  Text("Hoşgeldin, ${userData!['name'] ?? "Kullanıcı"}"),
-                  Text("E-posta: ${userData!['email']}"),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => FieldScreen()));
-                    },
-                    child: Text("Tarla Ekle"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => FieldListScreen()));
-                    },
-                    child: Text("Tarlalarımı Görüntüle"),
-                  ),
-                ],
-              ),
+                    FutureBuilder<QuerySnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection("Sensorler")
+                          .where("Tarla_id", isEqualTo: fieldId)
+                          .get(),
+                      builder: (context, sensorSnapshot) {
+                        if (sensorSnapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (!sensorSnapshot.hasData || sensorSnapshot.data!.docs.isEmpty) {
+                          return Center(child: Text("Sensör bulunamadı."));
+                        }
+              
+                        String sensorId = sensorSnapshot.data!.docs.first.id;
+              
+                        return SizedBox(
+                          height: 200,
+                          child: SensorGraphScreen(sensorId: sensorId),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+        },
       ),
     );
   }

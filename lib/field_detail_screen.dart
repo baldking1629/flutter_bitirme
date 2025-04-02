@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'sensor_list_screen.dart';
 
 class FieldDetailScreen extends StatefulWidget {
   final String fieldId;
@@ -71,6 +72,17 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                     onPressed: _deleteField,
                     child: Text("Sil"),
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SensorListScreen(fieldId: widget.fieldId)),
+                      );
+                    },
+                    child: Text("Sensörleri Görüntüle"),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                   ),
                 ],
               ),
