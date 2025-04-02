@@ -1,36 +1,40 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'field_detail_screen.dart';
+import 'sensor_records_screen.dart'; // Sensör kayıtlarını gösterecek sayfa
 
-class FieldListScreen extends StatelessWidget {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+class SensorDetailScreen extends StatelessWidget {
+  final String tarlaId;
+
+  SensorDetailScreen({required this.tarlaId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Tarlalarım")),
+      appBar: AppBar(title: Text("Sensörler")),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection("Tarlalar").where('Kullanici_id', isEqualTo: _auth.currentUser!.uid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection("Sensorler")
+            .where('Tarla_id', isEqualTo: tarlaId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("Henüz bir tarlanız yok."));
+            return Center(child: Text("Bu tarlaya ait sensör bulunamadı."));
           }
           return ListView(
             children: snapshot.data!.docs.map((doc) {
-              Map<String, dynamic> field = doc.data() as Map<String, dynamic>;
+              Map<String, dynamic> sensor = doc.data() as Map<String, dynamic>;
               return ListTile(
-                title: Text(field['Tarla_ismi']),
-                subtitle: Text("Konum: ${field['Konum']} - Alan: ${field['Boyut']} hektar"),
+                title: Text(sensor['Sensor_tipi'] ?? "Bilinmeyen Sensör"),
+                subtitle: Text("Konum: ${sensor['Konum'] ?? "Bilinmeyen"}"),
+                trailing: Icon(Icons.arrow_forward_ios),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FieldDetailScreen(fieldId: doc.id),
+                      builder: (context) => SensorRecordsScreen(sensorId: doc.id),
                     ),
                   );
                 },
