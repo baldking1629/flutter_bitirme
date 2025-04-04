@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'sensor_list_screen.dart';
 
 class FieldDetailScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
   TextEditingController _sizeController = TextEditingController();
 
   bool isLoading = true;
+  bool _isLoadingLocation = false; // Konum yükleniyor göstergesi
 
   @override
   void initState() {
@@ -36,6 +39,44 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
       _sizeController.text = data['Boyut'];
       isLoading = false;
     });
+  }
+
+  // 📌 Cihazın mevcut konumunu al ve adrese çevir
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      // 📍 Kullanıcıdan konum izni al
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Konum izni reddedildi.")));
+        return;
+      }
+
+      // 📍 Konumu al
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+      // 📍 Konumu adrese çevir
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      Placemark place = placemarks.first;
+      String address = "${place.locality}, ${place.administrativeArea}";
+
+      // 📍 Konum alanına yaz
+      setState(() {
+        _locationController.text = address;
+        _isLoadingLocation = false;
+      });
+    } catch (e) {
+      print("❌ Konum alınırken hata oluştu: $e");
+      setState(() {
+        _isLoadingLocation = false;
+      });
+    }
   }
 
   void _updateField() async {
@@ -63,8 +104,18 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
               child: Column(
                 children: [
                   TextField(controller: _nameController, decoration: InputDecoration(labelText: "Tarla Adı")),
-                  TextField(controller: _locationController, decoration: InputDecoration(labelText: "Konum")),
                   TextField(controller: _sizeController, decoration: InputDecoration(labelText: "Alan (hektar)")),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(controller: _locationController, decoration: InputDecoration(labelText: "Konum"), readOnly: true),
+                      ),
+                      IconButton(
+                        icon: _isLoadingLocation ? CircularProgressIndicator() : Icon(Icons.my_location),
+                        onPressed: _getCurrentLocation,
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 20),
                   ElevatedButton(onPressed: _updateField, child: Text("Güncelle")),
                   SizedBox(height: 10),

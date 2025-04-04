@@ -94,6 +94,7 @@ class _FieldScreenState extends State<FieldScreen> {
         child: Column(
           children: [
             TextField(controller: _nameController, decoration: InputDecoration(labelText: "Tarla Adı")),
+            TextField(controller: _sizeController, decoration: InputDecoration(labelText: "Alan (hektar)")),
             Row(
               children: [
                 Expanded(
@@ -105,7 +106,6 @@ class _FieldScreenState extends State<FieldScreen> {
                 ),
               ],
             ),
-            TextField(controller: _sizeController, decoration: InputDecoration(labelText: "Alan (hektar)")),
             SizedBox(height: 20),
             ElevatedButton(onPressed: _addField, child: Text("Ekle")),
           ],

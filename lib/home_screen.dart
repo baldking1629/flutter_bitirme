@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
       var userDoc = await FirebaseFirestore.instance.collection("Kullanicilar").doc(user!.uid).get();
       if (userDoc.exists && userDoc.data() != null) {
         setState(() {
-          userName = userDoc.data()!["Ad"] ?? "Kullanıcı";
+          userName = userDoc.data()!["name"] ?? "Kullanıcı";
         });
       }
     }
