@@ -226,7 +226,32 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                                         leading: Icon(Icons.sensors),
                                         title: Text(sensor.sensorAdi),
                                         subtitle: Text(sensor.sensorTipi),
-                                        trailing: Icon(Icons.arrow_forward_ios),
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        SensorEditScreen(
+                                                      tarlaId: widget.fieldId,
+                                                      sensorId: doc.id,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            Icon(Icons.arrow_forward_ios),
+                                          ],
+                                        ),
                                         onTap: () {
                                           Navigator.push(
                                             context,
