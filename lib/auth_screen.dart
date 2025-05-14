@@ -61,9 +61,8 @@ class _AuthScreenState extends State<AuthScreen> {
       if (isLogin) {
         userCredential = await _auth.signInWithEmailAndPassword(
             email: email, password: password);
-            await userCredential.user!.updateDisplayName(fullName);
-        await userCredential.user!
-            .reload();
+        await userCredential.user!.updateDisplayName(fullName);
+        await userCredential.user!.reload();
       } else {
         userCredential = await _auth.createUserWithEmailAndPassword(
             email: email, password: password);
@@ -73,14 +72,16 @@ class _AuthScreenState extends State<AuthScreen> {
       }
 
       User? user = userCredential.user;
-      if (user != null) {
-        await _firestore.collection('Kullanicilar').doc(user.uid).set({
-          'name': fullName.isNotEmpty ? fullName : "Anonim Kullanıcı",
-          'email': email,
-          'Olusturulma_tarihi': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+      if (!isLogin) {
+        if (user != null) {
+          await _firestore.collection('Kullanicilar').doc(user.uid).set({
+            'name': fullName.isNotEmpty ? fullName : "Anonim Kullanıcı",
+            'email': email,
+            'Olusturulma_tarihi': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
 
-        print("✅ Kullanıcı Firestore'a eklendi!");
+          print("✅ Kullanıcı Firestore'a eklendi!");
+        }
       }
     } catch (e) {
       print("❌ Hata: $e");
