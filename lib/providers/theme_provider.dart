@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
-  static const String _themeKey = 'theme_mode';
+  static const String _themeModeKey = 'theme_mode';
   late SharedPreferences _prefs;
   ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeMode get themeMode => _themeMode;
 
   ThemeProvider() {
     _loadThemeMode();
   }
 
-  ThemeMode get themeMode => _themeMode;
-
   Future<void> _loadThemeMode() async {
     _prefs = await SharedPreferences.getInstance();
-    final savedTheme = _prefs.getString(_themeKey);
-    if (savedTheme != null) {
+    final savedThemeMode = _prefs.getString(_themeModeKey);
+    if (savedThemeMode != null) {
       _themeMode = ThemeMode.values.firstWhere(
-        (mode) => mode.toString() == savedTheme,
+        (mode) => mode.toString() == savedThemeMode,
         orElse: () => ThemeMode.system,
       );
       notifyListeners();
@@ -25,9 +25,8 @@ class ThemeProvider with ChangeNotifier {
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    if (_themeMode == mode) return;
     _themeMode = mode;
-    await _prefs.setString(_themeKey, mode.toString());
+    await _prefs.setString(_themeModeKey, mode.toString());
     notifyListeners();
   }
 
@@ -41,20 +40,25 @@ class ThemeProvider with ChangeNotifier {
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-          elevation: 2,
-        ),
       ),
       cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        filled: true,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(double.infinity, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
@@ -70,20 +74,25 @@ class ThemeProvider with ChangeNotifier {
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.green.shade900,
-        foregroundColor: Colors.white,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green.shade800,
-          foregroundColor: Colors.white,
-          elevation: 2,
-        ),
       ),
       cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        filled: true,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(double.infinity, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
