@@ -155,33 +155,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Tema Ayarları',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    SizedBox(height: 16),
-                    SegmentedButton<ThemeMode>(
-                      segments: const [
-                        ButtonSegment<ThemeMode>(
-                          value: ThemeMode.light,
-                          label: Text('Açık'),
-                          icon: Icon(Icons.light_mode),
-                        ),
-                        ButtonSegment<ThemeMode>(
-                          value: ThemeMode.dark,
-                          label: Text('Koyu'),
-                          icon: Icon(Icons.dark_mode),
-                        ),
-                        ButtonSegment<ThemeMode>(
-                          value: ThemeMode.system,
-                          label: Text('Sistem'),
-                          icon: Icon(Icons.settings_suggest),
+                    Row(
+                      children: [
+                        Icon(Icons.palette,
+                            color: Theme.of(context).colorScheme.primary),
+                        SizedBox(width: 8),
+                        Text(
+                          'Tema Seçimi',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
-                      selected: {themeProvider.themeMode},
-                      onSelectionChanged: (Set<ThemeMode> newSelection) {
-                        themeProvider.setThemeMode(newSelection.first);
-                      },
+                    ),
+                    SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      child: SegmentedButton<ThemeMode>(
+                        segments: const [
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.light,
+                            label: Text('Açık Tema'),
+                            icon: Icon(Icons.light_mode),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.dark,
+                            label: Text('Koyu Tema'),
+                            icon: Icon(Icons.dark_mode),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.system,
+                            label: Text('Sistem'),
+                            icon: Icon(Icons.settings_suggest),
+                          ),
+                        ],
+                        selected: {themeProvider.themeMode},
+                        onSelectionChanged: (Set<ThemeMode> newSelection) {
+                          themeProvider.setThemeMode(newSelection.first);
+                        },
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.selected)) {
+                                return Theme.of(context).colorScheme.primary;
+                              }
+                              return Theme.of(context).colorScheme.surface;
+                            },
+                          ),
+                          foregroundColor:
+                              MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.selected)) {
+                                return Theme.of(context).colorScheme.onPrimary;
+                              }
+                              return Theme.of(context).colorScheme.onSurface;
+                            },
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),

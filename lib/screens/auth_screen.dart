@@ -21,6 +21,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true; // Giriş mi, kayıt mı?
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _obscurePassword = true; // Şifre gizleme durumu
 
   // 📌 Google ile Giriş Fonksiyonu
   Future<void> _signInWithGoogle() async {
@@ -251,8 +252,20 @@ class _AuthScreenState extends State<AuthScreen> {
                     labelText: "Şifre",
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   validator: (value) {
                     if (value?.isEmpty ?? true) {
                       return 'Lütfen şifrenizi girin';

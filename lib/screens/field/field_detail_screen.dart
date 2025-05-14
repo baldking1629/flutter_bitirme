@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bitirme/models/field_model.dart';
 import 'package:flutter_bitirme/models/sensor_model.dart';
 import 'package:flutter_bitirme/screens/sensor/sensor_graph_screen.dart';
+import 'package:flutter_bitirme/screens/sensor/sensor_edit_screen.dart';
 import 'package:flutter_bitirme/theme/app_theme.dart';
 
 import 'field_screen.dart';
@@ -147,11 +148,13 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                                     width: 150,
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Sensör eklemek için yönetici ile iletişime geçin.'),
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SensorEditScreen(
+                                              tarlaId: widget.fieldId,
+                                            ),
                                           ),
                                         );
                                       },
@@ -252,11 +255,32 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
   }
 
   Widget _buildInfoRow(String label, String value) {
+    IconData icon;
+    switch (label) {
+      case 'Tarla Adı':
+        icon = Icons.agriculture;
+        break;
+      case 'Konum':
+        icon = Icons.location_on;
+        break;
+      case 'Alan':
+        icon = Icons.crop_square;
+        break;
+      default:
+        icon = Icons.info;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
+          SizedBox(width: 8),
           SizedBox(
             width: 100,
             child: Text(
