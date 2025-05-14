@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bitirme/theme/app_theme.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class SensorEditScreen extends StatefulWidget {
   final String tarlaId;
@@ -36,6 +38,43 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
     _sensorTipiController.text = data['Sensor_tipi'] ?? "";
     _konumController.text = data['Konum'] ?? "";
     setState(() => isLoading = false);
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => isLoading = true);
+    try {
+      // Konum izinlerini kontrol et
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Konum izni reddedildi')),
+          );
+          setState(() => isLoading = false);
+          return;
+        }
+      }
+
+      // Mevcut konumu al
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        String address = '${place.locality}, ${place.country}';
+        _konumController.text = address;
+      } else {
+        _konumController.text = '${position.latitude}, ${position.longitude}';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Konum alınamadı: $e')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   void _saveSensor() async {
@@ -133,23 +172,50 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
                       ),
                     ),
                     SizedBox(height: 16),
-                    TextFormField(
-                      controller: _konumController,
-                      decoration: InputDecoration(
-                        labelText: 'Konum',
-                        prefixIcon: Icon(Icons.location_on),
-                        border: OutlineInputBorder(),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _konumController,
+                            decoration: InputDecoration(
+                              labelText: "Konum",
+                              prefixIcon: Icon(Icons.location_on),
+                            ),
+                            readOnly: true,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        IconButton(
+                          icon: isLoading
+                              ? SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(Icons.my_location),
+                          onPressed: _getCurrentLocation,
+                        ),
+                      ],
                     ),
+                    
                     SizedBox(height: 24),
-                    ElevatedButton.icon(
+                    ElevatedButton(
                       onPressed: isLoading ? null : _saveSensor,
-                      icon: Icon(
-                          widget.sensorId != null ? Icons.save : Icons.add),
-                      label: Text(
-                          widget.sensorId != null ? 'Kaydet' : 'Sensör Ekle'),
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(double.infinity, 50),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                              widget.sensorId != null ? Icons.save : Icons.add),
+                          SizedBox(width: 8),
+                          Text(widget.sensorId != null
+                              ? 'Kaydet'
+                              : 'Sensör Ekle'),
+                        ],
                       ),
                     ),
                   ],

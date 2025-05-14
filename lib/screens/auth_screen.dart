@@ -174,10 +174,27 @@ class _AuthScreenState extends State<AuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 40),
-                Icon(
-                  Icons.agriculture,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // Row genişliği içeriğe göre ayarlanır
+                    children: [
+                      Icon(
+                        Icons.agriculture,
+                        size: 110,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()..scale(-1.0, 1.0),
+                        child: Icon(
+                          Icons.agriculture,
+                          size: 110,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 16),
                 Text(

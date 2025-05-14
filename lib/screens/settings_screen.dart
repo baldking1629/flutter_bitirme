@@ -139,91 +139,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final User? user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Ayarlar'),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: AppTheme.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: AppTheme.cardPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.palette,
-                            color: Theme.of(context).colorScheme.primary),
-                        SizedBox(width: 8),
-                        Text(
-                          'Tema Seçimi',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
+                        Icon(
+                          Icons.account_circle,
+                          size: 40,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.email ?? 'Kullanıcı',
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
+                              Text(
+                                'Kullanıcı Bilgileri',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                    SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      child: SegmentedButton<ThemeMode>(
-                        segments: const [
-                          ButtonSegment<ThemeMode>(
-                            value: ThemeMode.light,
-                            label: Text('Açık Tema'),
-                            icon: Icon(Icons.light_mode),
-                          ),
-                          ButtonSegment<ThemeMode>(
-                            value: ThemeMode.dark,
-                            label: Text('Koyu Tema'),
-                            icon: Icon(Icons.dark_mode),
-                          ),
-                          ButtonSegment<ThemeMode>(
-                            value: ThemeMode.system,
-                            label: Text('Sistem'),
-                            icon: Icon(Icons.settings_suggest),
-                          ),
-                        ],
-                        selected: {themeProvider.themeMode},
-                        onSelectionChanged: (Set<ThemeMode> newSelection) {
-                          themeProvider.setThemeMode(newSelection.first);
-                        },
-                        style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.selected)) {
-                                return Theme.of(context).colorScheme.primary;
-                              }
-                              return Theme.of(context).colorScheme.surface;
-                            },
-                          ),
-                          foregroundColor:
-                              MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.selected)) {
-                                return Theme.of(context).colorScheme.onPrimary;
-                              }
-                              return Theme.of(context).colorScheme.onSurface;
-                            },
-                          ),
-                        ),
-                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 24),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16),

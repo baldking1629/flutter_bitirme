@@ -72,7 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tarla Takip'),
+        title: Row(
+          children: [
+            Icon(
+              Icons.directions_car,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            SizedBox(width: 8),
+            Text('Ana Ekran'),
+          ],
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -92,62 +101,59 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: AppTheme.screenPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          : SingleChildScrollView(
+              padding: AppTheme.screenPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hoş geldin, ${_userName ?? "Kullanıcı"}!',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  SizedBox(height: 24),
+                  Row(
                     children: [
-                      Text(
-                        'Hoş Geldiniz, ${_userName ?? "Kullanıcı"}',
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FieldScreen(
+                                  fieldId: '',
+                                ),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.add),
+                          label: Text('Tarla Ekle'),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
                       ),
-                      SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FieldScreen(),
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.add),
-                              label: Text('Tarla Ekle'),
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 16),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FieldListScreen(),
                               ),
-                            ),
+                            );
+                          },
+                          icon: Icon(Icons.list),
+                          label: Text('Tarlalarım'),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16),
                           ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FieldListScreen(),
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.list),
-                              label: Text('Tarlalarım'),
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
+                  SizedBox(height: 24),
+                  StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection("Tarlalar")
                         .where("Kullanici_id", isEqualTo: user?.uid)
@@ -186,7 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
 
                       return ListView.builder(
-                        padding: AppTheme.screenPadding,
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
                         itemCount: snapshot.data!.docs.length,
                         itemBuilder: (context, index) {
                           var doc = snapshot.data!.docs[index];
@@ -194,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           String fieldId = doc.id;
 
                           return Card(
+                            margin: EdgeInsets.only(bottom: 16),
                             child: Padding(
                               padding: AppTheme.cardPadding,
                               child: Column(
@@ -285,8 +294,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }
