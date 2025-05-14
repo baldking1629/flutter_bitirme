@@ -69,8 +69,8 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: ColorScheme.light(
-      primary: Color(0xFF4CAF50), // Açık yeşil
-      secondary: Color(0xFF8BC34A), // Pastel yeşil
+      primary: Color(0xFF43A047), // Daha canlı yeşil
+      secondary: Color(0xFF7CB342), // Daha canlı açık yeşil
       surface: Color(0xFFF5F5F5), // Açık gri
       background: Colors.white,
       error: Colors.red,
@@ -123,8 +123,8 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: ColorScheme.dark(
-      primary: Color(0xFF558B2F), // Zeytin yeşili
-      secondary: Color(0xFF689F38), // Koyu yeşil
+      primary: Color(0xFF66BB6A), // Daha canlı koyu yeşil
+      secondary: Color(0xFF9CCC65), // Daha canlı koyu açık yeşil
       surface: Color(0xFF424242), // Koyu gri
       background: Color(0xFF303030), // Antrasit
       error: Colors.red,
