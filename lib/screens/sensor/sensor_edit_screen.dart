@@ -80,7 +80,7 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
         String fullAddress =
-            '${place.administrativeArea} / ${place.locality} - ${place.thoroughfare} - ${place.street} - ${place.subAdministrativeArea} - ${place.country}';
+            '${place.administrativeArea} / ${place.subAdministrativeArea} - ${place.locality} - ${place.thoroughfare} - ${place.street} -  ${place.country}';
         String shortAddress = _formatAddress(fullAddress);
 
         _konumController.text = shortAddress;

@@ -155,7 +155,7 @@ class _FieldScreenState extends State<FieldScreen> {
 
       Placemark place = placemarks.first;
       String address =
-          '${place.administrativeArea} / ${place.locality} - ${place.thoroughfare} - ${place.street} - ${place.subAdministrativeArea} - ${place.country}';
+          '${place.administrativeArea} / ${place.subAdministrativeArea} - ${place.locality} - ${place.thoroughfare} - ${place.street} -  ${place.country}';
       _latitude = position.latitude.toString();
       _longitude = position.longitude.toString();
 
