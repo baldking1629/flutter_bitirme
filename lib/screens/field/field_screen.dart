@@ -82,7 +82,7 @@ class _FieldScreenState extends State<FieldScreen> {
       );
       Placemark place = placemarks.first;
       String address = "${place.locality}, ${place.administrativeArea}";
-
+      
       setState(() {
         _locationController.text = address;
         _isLoadingLocation = false;
