@@ -24,37 +24,99 @@ class _FieldScreenState extends State<FieldScreen> {
 
   bool _isLoadingLocation = false;
   bool _isEditing = false;
+  String? _latitude;
+  String? _longitude;
+  bool _isFirstLoad = true;
 
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.fieldId != null;
-    if (_isEditing) {
+    _isEditing = widget.fieldId != null && widget.fieldId!.isNotEmpty;
+    print("🔄 initState çağrıldı");
+    print("fieldId: ${widget.fieldId}");
+    print("_isEditing: $_isEditing");
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isFirstLoad &&
+        _isEditing &&
+        widget.fieldId != null &&
+        widget.fieldId!.isNotEmpty) {
+      _isFirstLoad = false;
       _loadFieldDetails();
     }
   }
 
   Future<void> _loadFieldDetails() async {
+    if (!mounted) return;
+
+    print("🔍 Tarla detayları yükleniyor...");
+    print("Tarla ID: ${widget.fieldId}");
+
     try {
       DocumentSnapshot doc =
           await _firestore.collection('Tarlalar').doc(widget.fieldId).get();
-      if (doc.exists) {
+
+      print("📄 Firestore'dan veri alındı: ${doc.exists ? 'Var' : 'Yok'}");
+
+      if (doc.exists && mounted) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        print("📋 Tarla verileri:");
+        print("Tarla İsmi: ${data['Tarla_ismi']}");
+        print("Konum: ${data['Konum']}");
+        print("Boyut: ${data['Boyut']}");
+        print("Enlem: ${data['Enlem']}");
+        print("Boylam: ${data['Boylam']}");
+
         setState(() {
           _nameController.text = data['Tarla_ismi'] ?? '';
           _locationController.text = data['Konum'] ?? '';
           _sizeController.text = data['Boyut'] ?? '';
+          _latitude = data['Enlem']?.toString();
+          _longitude = data['Boylam']?.toString();
         });
+        print("✅ Tarla detayları yüklendi");
+      } else {
+        print("⚠️ Tarla bulunamadı");
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Tarla bulunamadı."),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              Navigator.pop(context);
+            }
+          });
+        }
       }
     } catch (e) {
+      if (!mounted) return;
+
       print("❌ Tarla bilgileri yüklenirken hata oluştu: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Tarla bilgileri yüklenirken bir hata oluştu.")),
-      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  "Tarla bilgileri yüklenirken bir hata oluştu: ${e.toString()}"),
+              backgroundColor: Colors.red,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      });
     }
   }
 
   Future<void> _getCurrentLocation() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoadingLocation = true;
     });
@@ -63,12 +125,20 @@ class _FieldScreenState extends State<FieldScreen> {
       LocationPermission permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+
         setState(() {
           _isLoadingLocation = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Konum izni reddedildi.")),
-        );
+
+        // SnackBar'ı bir sonraki frame'de göster
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Konum izni reddedildi.")),
+            );
+          }
+        });
         return;
       }
 
@@ -80,62 +150,131 @@ class _FieldScreenState extends State<FieldScreen> {
         position.latitude,
         position.longitude,
       );
+
+      if (!mounted) return;
+
       Placemark place = placemarks.first;
-      String address = "${place.locality}, ${place.administrativeArea}";
-      
+      String address =
+          '${place.administrativeArea} / ${place.locality} - ${place.thoroughfare} - ${place.street} - ${place.subAdministrativeArea} - ${place.country}';
+      _latitude = position.latitude.toString();
+      _longitude = position.longitude.toString();
+
       setState(() {
         _locationController.text = address;
         _isLoadingLocation = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       print("❌ Konum alınırken hata oluştu: $e");
       setState(() {
         _isLoadingLocation = false;
+      });
+
+      // Hata SnackBar'ını bir sonraki frame'de göster
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Konum alınırken bir hata oluştu.")),
+          );
+        }
       });
     }
   }
 
   Future<void> _saveField() async {
+    if (!mounted) return;
+
     String userId = _auth.currentUser!.uid;
     String name = _nameController.text.trim();
     String location = _locationController.text.trim();
     String size = _sizeController.text.trim();
 
+    print("🔍 Kaydetme işlemi başladı:");
+    print("Kullanıcı ID: $userId");
+    print("Tarla Adı: $name");
+    print("Konum: $location");
+    print("Boyut: $size");
+    print("Enlem: $_latitude");
+    print("Boylam: $_longitude");
+    print("Düzenleme Modu: $_isEditing");
+    print("fieldId: ${widget.fieldId}");
+
     if (name.isNotEmpty && location.isNotEmpty && size.isNotEmpty) {
       try {
-        if (_isEditing) {
+        if (_isEditing &&
+            widget.fieldId != null &&
+            widget.fieldId!.isNotEmpty) {
+          print("📝 Tarla güncelleniyor...");
           await _firestore.collection("Tarlalar").doc(widget.fieldId).update({
             'Tarla_ismi': name,
             'Konum': location,
             'Boyut': size,
+            'Enlem': _latitude,
+            'Boylam': _longitude,
             'Guncelleme_tarihi': FieldValue.serverTimestamp(),
           });
+          print("✅ Tarla güncellendi");
         } else {
-          await _firestore.collection("Tarlalar").add({
+          print("📝 Yeni tarla ekleniyor...");
+          DocumentReference docRef =
+              await _firestore.collection("Tarlalar").add({
             'Kullanici_id': userId,
             'Tarla_ismi': name,
             'Konum': location,
             'Boyut': size,
+            'Enlem': _latitude,
+            'Boylam': _longitude,
             'Olusturulma_tarihi': FieldValue.serverTimestamp(),
           });
+          print("✅ Yeni tarla eklendi. ID: ${docRef.id}");
         }
 
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isEditing ? "Tarla güncellendi." : "Tarla eklendi."),
-          ),
-        );
+        if (!mounted) return;
+
+        // Önce SnackBar'ı göster, sonra sayfayı kapat
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content:
+                    Text(_isEditing ? "Tarla güncellendi." : "Tarla eklendi."),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context);
+          }
+        });
       } catch (e) {
+        if (!mounted) return;
+
         print("❌ Tarla kaydedilirken hata oluştu: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Tarla kaydedilirken bir hata oluştu.")),
-        );
+
+        // Hata SnackBar'ını bir sonraki frame'de göster
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    "Tarla kaydedilirken bir hata oluştu: ${e.toString()}"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        });
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lütfen tüm alanları doldurun.")),
-      );
+      // Uyarı SnackBar'ını bir sonraki frame'de göster
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Lütfen tüm alanları doldurun."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      });
     }
   }
 

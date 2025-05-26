@@ -5,6 +5,8 @@ class FieldModel {
   final Timestamp olusturulmaTarihi;
   final String tarlaIsmi;
   final String konum;
+  final String? enlem;
+  final String? boylam;
   final String boyut;
 
   FieldModel({
@@ -12,6 +14,8 @@ class FieldModel {
     required this.olusturulmaTarihi,
     required this.tarlaIsmi,
     required this.konum,
+    this.enlem,
+    this.boylam,
     required this.boyut,
   });
 
@@ -21,6 +25,8 @@ class FieldModel {
       olusturulmaTarihi: json['Olusturulma_tarihi'] as Timestamp,
       tarlaIsmi: json['Tarla_ismi'] as String,
       konum: json['Konum'] as String,
+      enlem: json['Enlem'] as String,
+      boylam: json['Boylam'] as String,
       boyut: json['Boyut'] as String,
     );
   }
@@ -31,6 +37,8 @@ class FieldModel {
       'Olusturulma_tarihi': olusturulmaTarihi,
       'Tarla_ismi': tarlaIsmi,
       'Konum': konum,
+      'Enlem': enlem,
+      'Boylam': boylam,
       'Boyut': boyut,
     };
   }

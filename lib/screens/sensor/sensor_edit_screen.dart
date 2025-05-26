@@ -20,6 +20,22 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
   final TextEditingController _konumController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = false;
+  String? _latitude;
+  String? _longitude;
+
+  String _formatAddress(String address) {
+    if (address.length <= 30) return address;
+
+    List<String> parts = address.split(' - ');
+    if (parts.length <= 2) return address;
+
+    // İlk iki parçayı al ve diğerlerini kısalt
+    String result = '${parts[0]} - ${parts[1]}';
+    if (parts.length > 2) {
+      result += ' ...';
+    }
+    return result;
+  }
 
   @override
   void initState() {
@@ -63,10 +79,41 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
           await placemarkFromCoordinates(position.latitude, position.longitude);
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
-        String address = '${place.locality}, ${place.country}';
-        _konumController.text = address;
+        String fullAddress =
+            '${place.administrativeArea} / ${place.locality} - ${place.thoroughfare} - ${place.street} - ${place.subAdministrativeArea} - ${place.country}';
+        String shortAddress = _formatAddress(fullAddress);
+
+        _konumController.text = shortAddress;
+        _latitude = position.latitude.toString();
+        _longitude = position.longitude.toString();
+
+        // Tam adres bilgisini göster
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Tam Adres:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    fullAddress,
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
       } else {
         _konumController.text = '${position.latitude}, ${position.longitude}';
+        _latitude = position.latitude.toString();
+        _longitude = position.longitude.toString();
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,6 +144,8 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
           'Sensor_adi': sensorAdi,
           'Sensor_tipi': sensorTipi,
           'Konum': konum,
+          'Enlem': _latitude,
+          'Boylam': _longitude,
           'Guncelleme_tarihi': FieldValue.serverTimestamp(),
         });
       } else {
@@ -105,6 +154,8 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
           'Sensor_adi': sensorAdi,
           'Sensor_tipi': sensorTipi,
           'Konum': konum,
+          'Enlem': _latitude,
+          'Boylam': _longitude,
           'Olusturulma_tarihi': FieldValue.serverTimestamp(),
         });
       }
@@ -199,7 +250,6 @@ class _SensorEditScreenState extends State<SensorEditScreen> {
                         ),
                       ],
                     ),
-                    
                     SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: isLoading ? null : _saveSensor,

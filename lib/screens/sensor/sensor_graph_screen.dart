@@ -23,23 +23,59 @@ class _SensorGraphScreenState extends State<SensorGraphScreen> {
   List<FlSpot> _spots = [];
   double _minY = 0;
   double _maxY = 0;
+  QuerySnapshot? _snapshot;
+  String _selectedTimeRange = 'Son 1 Gün'; // Varsayılan değer
+  bool _isFirstLoad = true;
+
+  final Map<String, Duration> _timeRanges = {
+    'Son 1 Gün': Duration(days: 1),
+    'Son 2 Gün': Duration(days: 2),
+    'Son 1 Hafta': Duration(days: 7),
+    'Son 2 Hafta': Duration(days: 14),
+    'Son 1 Ay': Duration(days: 30),
+    'Son 3 Ay': Duration(days: 90),
+    'Son 6 Ay': Duration(days: 180),
+    'Son 1 Yıl': Duration(days: 365),
+  };
 
   @override
   void initState() {
     super.initState();
-    _loadSensorData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isFirstLoad) {
+      _isFirstLoad = false;
+      _loadSensorData();
+    }
   }
 
   Future<void> _loadSensorData() async {
+    if (!mounted) return;
+
+    setState(() => _isLoading = true);
+
     try {
+      final DateTime now = DateTime.now();
+      final DateTime startTime = now.subtract(_timeRanges[_selectedTimeRange]!);
+
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Sensor_kayitlari')
           .where('Sensor_id', isEqualTo: widget.sensorId)
+          .where('Tarih', isGreaterThanOrEqualTo: Timestamp.fromDate(startTime))
           .orderBy('Tarih', descending: false)
           .get();
 
+      if (!mounted) return;
+
       if (snapshot.docs.isEmpty) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _spots = [];
+          _snapshot = null;
+        });
         return;
       }
 
@@ -58,16 +94,21 @@ class _SensorGraphScreenState extends State<SensorGraphScreen> {
         maxY = maxY > value ? maxY : value;
       }
 
+      if (!mounted) return;
+
       setState(() {
         _spots = spots;
         _minY = minY;
         _maxY = maxY;
+        _snapshot = snapshot;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veriler yüklenirken bir hata oluştu')),
+        SnackBar(content: Text('Veriler yüklenirken bir hata oluştu: $e')),
       );
     }
   }
@@ -117,8 +158,52 @@ class _SensorGraphScreenState extends State<SensorGraphScreen> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Seçilen sensöre ait geçmiş veriler günlük bazda görselleştirilmektedir.',
+                        'Seçilen sensöre ait geçmiş veriler görselleştirilmektedir.',
                         style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      SizedBox(height: 16),
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.2),
+                          ),
+                        ),
+                        child: DropdownButton<String>(
+                          value: _selectedTimeRange,
+                          isExpanded: true,
+                          underline: SizedBox(),
+                          icon: Icon(Icons.arrow_drop_down),
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                _selectedTimeRange = newValue;
+                                _isLoading = true;
+                              });
+                              _loadSensorData();
+                            }
+                          },
+                          items: _timeRanges.keys
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.access_time, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(value),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                       SizedBox(height: 24),
                       Container(
@@ -184,15 +269,34 @@ class _SensorGraphScreenState extends State<SensorGraphScreen> {
                                             .ceil()
                                             .toDouble(),
                                         getTitlesWidget: (value, meta) {
-                                          if (value.toInt() >= _spots.length)
+                                          if (value.toInt() >= _spots.length ||
+                                              _snapshot == null)
                                             return Text('');
-                                          final date =
-                                              DateFormat('dd.MM').format(
-                                            DateTime.fromMillisecondsSinceEpoch(
-                                              (_spots[value.toInt()].x * 1000)
-                                                  .toInt(),
-                                            ),
-                                          );
+
+                                          final doc =
+                                              _snapshot!.docs[value.toInt()];
+                                          final data = doc.data()
+                                              as Map<String, dynamic>;
+                                          final timestamp =
+                                              (data['Tarih'] as Timestamp)
+                                                  .toDate();
+
+                                          String date;
+                                          if (_selectedTimeRange ==
+                                                  'Son 1 Gün' ||
+                                              _selectedTimeRange ==
+                                                  'Son 2 Gün') {
+                                            date = DateFormat('HH:mm')
+                                                .format(timestamp);
+                                          } else {
+                                            date = DateFormat('dd.MM HH:mm')
+                                                .format(timestamp);
+                                            // Label skipping için kontrol
+                                            if (value.toInt() % 3 != 0) {
+                                              return Text('');
+                                            }
+                                          }
+
                                           return Text(
                                             date,
                                             style: Theme.of(context)

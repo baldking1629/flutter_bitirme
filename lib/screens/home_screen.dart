@@ -68,6 +68,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _formatLocation(String location) {
+    if (location.length <= 30) return location;
+
+    List<String> parts = location.split(' - ');
+    if (parts.length <= 2) return location;
+
+    // İlk iki parçayı al ve diğerlerini kısalt
+    String result = '${parts[0]} - ${parts[1]}';
+    if (parts.length > 2) {
+      result += ' ...';
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             .titleMedium,
                                       ),
                                       subtitle: Text(
-                                        "Konum: ${field['Konum']} - Alan: ${field['Boyut']}",
+                                        "Konum: ${_formatLocation(field['Konum'])} - Alan: ${field['Boyut']}",
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium,
