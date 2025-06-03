@@ -257,7 +257,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       {
                                         'id': sensorId,
                                         'name': s['Sensor_adi'] ?? 'Sensör',
-                                        'type': s['Sensor_tipi'] ?? 'Bilinmeyen',
+                                        'type':
+                                            s['Sensor_tipi'] ?? 'Bilinmeyen',
                                         'value': value,
                                         'icon': Icons.sensors,
                                         'timestamp': timestamp,

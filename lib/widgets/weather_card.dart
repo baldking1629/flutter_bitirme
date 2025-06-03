@@ -5,7 +5,7 @@ class WeatherCard extends StatelessWidget {
   final WeatherModel weather;
 
   const WeatherCard({Key? key, required this.weather}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
