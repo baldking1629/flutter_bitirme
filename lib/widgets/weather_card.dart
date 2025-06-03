@@ -5,11 +5,14 @@ class WeatherCard extends StatelessWidget {
   final WeatherModel weather;
 
   const WeatherCard({Key? key, required this.weather}) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    print(weather.description);
+    print(weather.iconCode);
+    print(weather.description);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
       padding: const EdgeInsets.all(0),
@@ -29,7 +32,7 @@ class WeatherCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Sol: Sıcaklık ve şehir adı
+            // Sol: Sıcaklık, açıklama ve şehir adı
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +44,15 @@ class WeatherCard extends StatelessWidget {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 4),
+                  Text(
+                    weather.description,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.grey.shade800,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 6),
                   Text(
                     weather.cityName,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -62,9 +73,11 @@ class WeatherCard extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: Image.network(
                 'https://openweathermap.org/img/wn/${weather.iconCode}@2x.png',
-                width: 56,
-                height: 56,
+                width: 48,
+                height: 48,
                 fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    Icon(Icons.cloud, size: 48, color: Colors.grey.shade400),
               ),
             ),
           ],

@@ -226,49 +226,111 @@ class _HomeScreenState extends State<HomeScreen> {
                                 .get(),
                             builder: (context, sensorSnapshot) {
                               List<Map<String, dynamic>> sensorList = [];
-                              if (sensorSnapshot.hasData) {
-                                sensorList =
-                                    sensorSnapshot.data!.docs.map((sDoc) {
-                                  var s = sDoc.data() as Map<String, dynamic>;
-                                  return {
-                                    'id': sDoc.id,
-                                    'name': s['Sensor_adi'] ?? 'Sensör',
-                                    'value': s['Deger']?.toString() ?? '-',
-                                    'icon': Icons.sensors,
-                                  };
-                                }).toList();
-                              }
+                              if (sensorSnapshot.hasData &&
+                                  sensorSnapshot.data!.docs.isNotEmpty) {
+                                var firstSensorDoc =
+                                    sensorSnapshot.data!.docs.first;
+                                var s = firstSensorDoc.data()
+                                    as Map<String, dynamic>;
+                                String sensorId = firstSensorDoc.id;
 
-                              // Hava durumu için FutureBuilder
-                              if (field['Enlem'] != null &&
-                                  field['Boylam'] != null) {
-                                return FutureBuilder(
-                                  future: WeatherService().getWeatherByLocation(
-                                    double.parse(field['Enlem']),
-                                    double.parse(field['Boylam']),
-                                  ),
-                                  builder: (context, weatherSnapshot) {
-                                    return FieldCard(
-                                      fieldId: fieldId,
-                                      fieldName: field["Tarla_ismi"] ??
-                                          "Bilinmeyen Tarla",
-                                      location: field["Konum"] ?? "",
-                                      area: field["Boyut"] ?? "",
-                                      weather: weatherSnapshot.data,
-                                      sensors: sensorList,
-                                    );
+                                // En güncel sensör kaydını çekmek için FutureBuilder
+                                return FutureBuilder<QuerySnapshot>(
+                                  future: FirebaseFirestore.instance
+                                      .collection('Sensor_kayitlari')
+                                      .where('Sensor_id', isEqualTo: sensorId)
+                                      .orderBy('Tarih', descending: true)
+                                      .limit(1)
+                                      .get(),
+                                  builder: (context, kayitSnapshot) {
+                                    String value = '-';
+                                    DateTime? timestamp;
+                                    if (kayitSnapshot.hasData &&
+                                        kayitSnapshot.data!.docs.isNotEmpty) {
+                                      var kayit = kayitSnapshot.data!.docs.first
+                                          .data() as Map<String, dynamic>;
+                                      value = kayit['Deger']?.toString() ?? '-';
+                                      timestamp = (kayit['Tarih'] as Timestamp?)
+                                          ?.toDate();
+                                    }
+                                    sensorList = [
+                                      {
+                                        'id': sensorId,
+                                        'name': s['Sensor_adi'] ?? 'Sensör',
+                                        'type': s['Sensor_tipi'] ?? 'Bilinmeyen',
+                                        'value': value,
+                                        'icon': Icons.sensors,
+                                        'timestamp': timestamp,
+                                      }
+                                    ];
+
+                                    // Hava durumu için FutureBuilder
+                                    if (field['Enlem'] != null &&
+                                        field['Boylam'] != null) {
+                                      return FutureBuilder(
+                                        future: WeatherService()
+                                            .getWeatherByLocation(
+                                          double.parse(field['Enlem']),
+                                          double.parse(field['Boylam']),
+                                        ),
+                                        builder: (context, weatherSnapshot) {
+                                          return FieldCard(
+                                            fieldId: fieldId,
+                                            fieldName: field["Tarla_ismi"] ??
+                                                "Bilinmeyen Tarla",
+                                            location: field["Konum"] ?? "",
+                                            area: field["Boyut"] ?? "",
+                                            weather: weatherSnapshot.data,
+                                            sensors: sensorList,
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      return FieldCard(
+                                        fieldId: fieldId,
+                                        fieldName: field["Tarla_ismi"] ??
+                                            "Bilinmeyen Tarla",
+                                        location: field["Konum"] ?? "",
+                                        area: field["Boyut"] ?? "",
+                                        weather: null,
+                                        sensors: sensorList,
+                                      );
+                                    }
                                   },
                                 );
                               } else {
-                                return FieldCard(
-                                  fieldId: fieldId,
-                                  fieldName:
-                                      field["Tarla_ismi"] ?? "Bilinmeyen Tarla",
-                                  location: field["Konum"] ?? "",
-                                  area: field["Boyut"] ?? "",
-                                  weather: null,
-                                  sensors: sensorList,
-                                );
+                                // Sensör yoksa
+                                if (field['Enlem'] != null &&
+                                    field['Boylam'] != null) {
+                                  return FutureBuilder(
+                                    future:
+                                        WeatherService().getWeatherByLocation(
+                                      double.parse(field['Enlem']),
+                                      double.parse(field['Boylam']),
+                                    ),
+                                    builder: (context, weatherSnapshot) {
+                                      return FieldCard(
+                                        fieldId: fieldId,
+                                        fieldName: field["Tarla_ismi"] ??
+                                            "Bilinmeyen Tarla",
+                                        location: field["Konum"] ?? "",
+                                        area: field["Boyut"] ?? "",
+                                        weather: weatherSnapshot.data,
+                                        sensors: [],
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  return FieldCard(
+                                    fieldId: fieldId,
+                                    fieldName: field["Tarla_ismi"] ??
+                                        "Bilinmeyen Tarla",
+                                    location: field["Konum"] ?? "",
+                                    area: field["Boyut"] ?? "",
+                                    weather: null,
+                                    sensors: [],
+                                  );
+                                }
                               }
                             },
                           );

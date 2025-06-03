@@ -3,6 +3,7 @@ import '../models/weather_model.dart';
 import 'weather_card.dart';
 import '../screens/sensor/sensor_graph_screen.dart';
 import '../screens/field/field_detail_screen.dart';
+import 'package:intl/intl.dart';
 
 class FieldCard extends StatelessWidget {
   final String fieldId;
@@ -10,7 +11,8 @@ class FieldCard extends StatelessWidget {
   final String location;
   final String area;
   final WeatherModel? weather;
-  final List<Map<String, dynamic>> sensors; // [{name, value, icon, id}, ...]
+  final List<Map<String, dynamic>>
+      sensors; // [{name, value, icon, id, timestamp}, ...]
 
   const FieldCard({
     Key? key,
@@ -25,7 +27,18 @@ class FieldCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final lastSensor = sensors.isNotEmpty ? sensors.last : null;
+
+    // En güncel sensör verisini bul (timestamp'e göre)
+    Map<String, dynamic>? lastSensor;
+    if (sensors.isNotEmpty) {
+      sensors.sort((a, b) {
+        final aTime = a['timestamp'] as DateTime?;
+        final bTime = b['timestamp'] as DateTime?;
+        if (aTime == null || bTime == null) return 0;
+        return bTime.compareTo(aTime);
+      });
+      lastSensor = sensors.first;
+    }
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
@@ -78,8 +91,8 @@ class FieldCard extends StatelessWidget {
               SizedBox(height: 16),
               // Hava durumu
               if (weather != null) WeatherCard(weather: weather!),
-              // Sensör verisi (sadece son veri)
-              SizedBox(height: 16),
+              // Sensör verisi (sadece en güncel)
+              SizedBox(height: 12),
               if (lastSensor != null)
                 GestureDetector(
                   onTap: () {
@@ -87,42 +100,56 @@ class FieldCard extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => SensorGraphScreen(
-                          sensorId: lastSensor['id'],
-                          sensorName: lastSensor['name'],
+                          sensorId: lastSensor!['id'],
+                          sensorName: lastSensor!['name'],
                         ),
                       ),
                     );
                   },
                   child: Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 24),
+                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: theme.colorScheme.primary.withOpacity(0.10),
                       ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(lastSensor['icon'],
-                            color: theme.colorScheme.primary, size: 36),
-                        SizedBox(height: 8),
+                        Icon(lastSensor!['icon'],
+                            color: theme.colorScheme.primary, size: 22),
+                        SizedBox(width: 10),
                         Text(
-                          lastSensor['name'],
-                          style: theme.textTheme.titleMedium
+                          lastSensor!['name'],
+                          style: theme.textTheme.bodyMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(width: 2),
                         Text(
-                          lastSensor['value'],
-                          style: theme.textTheme.headlineMedium?.copyWith(
+                          lastSensor!['type'],
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          lastSensor!['value'],
+                          style: theme.textTheme.titleLarge?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        if (lastSensor!['timestamp'] != null) ...[
+                          SizedBox(width: 10),
+                          Text(
+                            DateFormat('dd.MM.yyyy HH:mm')
+                                .format(lastSensor!['timestamp']),
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: Colors.grey.shade600),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -131,10 +158,10 @@ class FieldCard extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   alignment: Alignment.center,
-                  padding: EdgeInsets.symmetric(vertical: 24),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     "Veri bulunamadı.",
