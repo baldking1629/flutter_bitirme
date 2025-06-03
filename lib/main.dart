@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'providers/theme_provider.dart';
 import 'screens/auth_screen.dart';
@@ -12,6 +13,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  try {
+    await dotenv.load(fileName: ".env");
+    print(
+        'API Key yüklendi: ${dotenv.env['OPENWEATHER_API_KEY'] != null ? 'Mevcut' : 'Bulunamadı'}');
+  } catch (e) {
+    print('Hata: .env dosyası yüklenemedi: $e');
+  }
+
   runApp(MyApp());
 }
 

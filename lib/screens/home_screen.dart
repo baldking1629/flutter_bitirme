@@ -8,6 +8,9 @@ import 'package:flutter_bitirme/screens/sensor/sensor_graph_preview.dart';
 import 'package:flutter_bitirme/screens/settings_screen.dart';
 import 'sensor/sensor_graph_screen.dart';
 import 'auth_screen.dart';
+import 'package:flutter_bitirme/services/weather_service.dart';
+import 'package:flutter_bitirme/widgets/weather_card.dart';
+import 'package:flutter_bitirme/widgets/field_card.dart';
 
 import '../theme/app_theme.dart';
 
@@ -215,94 +218,59 @@ class _HomeScreenState extends State<HomeScreen> {
                           var field = doc.data() as Map<String, dynamic>;
                           String fieldId = doc.id;
 
-                          return Card(
-                            margin: EdgeInsets.only(bottom: 16),
-                            child: Padding(
-                              padding: AppTheme.cardPadding,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              FieldDetailScreen(
-                                                  fieldId: fieldId),
-                                        ),
-                                      );
-                                    },
-                                    child: ListTile(
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text(
-                                        field["Tarla_ismi"] ??
-                                            "Bilinmeyen Tarla",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
-                                      ),
-                                      subtitle: Text(
-                                        "Konum: ${_formatLocation(field['Konum'])} - Alan: ${field['Boyut']}",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
-                                      ),
-                                      trailing: Icon(Icons.arrow_forward_ios),
-                                    ),
-                                  ),
-                                  FutureBuilder<QuerySnapshot>(
-                                    future: FirebaseFirestore.instance
-                                        .collection("Sensorler")
-                                        .where("Tarla_id", isEqualTo: fieldId)
-                                        .get(),
-                                    builder: (context, sensorSnapshot) {
-                                      if (sensorSnapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Center(
-                                              child:
-                                                  CircularProgressIndicator()),
-                                        );
-                                      }
-                                      if (!sensorSnapshot.hasData ||
-                                          sensorSnapshot.data!.docs.isEmpty) {
-                                        return Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Center(
-                                            child: Text(
-                                              "Sensör bulunamadı.",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium,
-                                            ),
-                                          ),
-                                        );
-                                      }
+                          // Sensör verilerini çekmek için FutureBuilder
+                          return FutureBuilder<QuerySnapshot>(
+                            future: FirebaseFirestore.instance
+                                .collection("Sensorler")
+                                .where("Tarla_id", isEqualTo: fieldId)
+                                .get(),
+                            builder: (context, sensorSnapshot) {
+                              List<Map<String, dynamic>> sensorList = [];
+                              if (sensorSnapshot.hasData) {
+                                sensorList =
+                                    sensorSnapshot.data!.docs.map((sDoc) {
+                                  var s = sDoc.data() as Map<String, dynamic>;
+                                  return {
+                                    'id': sDoc.id,
+                                    'name': s['Sensor_adi'] ?? 'Sensör',
+                                    'value': s['Deger']?.toString() ?? '-',
+                                    'icon': Icons.sensors,
+                                  };
+                                }).toList();
+                              }
 
-                                      String sensorId =
-                                          sensorSnapshot.data!.docs.first.id;
-                                      var sensorData =
-                                          sensorSnapshot.data!.docs.first.data()
-                                              as Map<String, dynamic>;
-
-                                      return Column(
-                                        children: [
-                                          Divider(),
-                                          SensorGraphPreview(
-                                            sensorId: sensorId,
-                                            sensorName:
-                                                sensorData['Sensor_adi'] ??
-                                                    'Bilinmeyen Sensör',
-                                          ),
-                                        ],
-                                      );
-                                    },
+                              // Hava durumu için FutureBuilder
+                              if (field['Enlem'] != null &&
+                                  field['Boylam'] != null) {
+                                return FutureBuilder(
+                                  future: WeatherService().getWeatherByLocation(
+                                    double.parse(field['Enlem']),
+                                    double.parse(field['Boylam']),
                                   ),
-                                ],
-                              ),
-                            ),
+                                  builder: (context, weatherSnapshot) {
+                                    return FieldCard(
+                                      fieldId: fieldId,
+                                      fieldName: field["Tarla_ismi"] ??
+                                          "Bilinmeyen Tarla",
+                                      location: field["Konum"] ?? "",
+                                      area: field["Boyut"] ?? "",
+                                      weather: weatherSnapshot.data,
+                                      sensors: sensorList,
+                                    );
+                                  },
+                                );
+                              } else {
+                                return FieldCard(
+                                  fieldId: fieldId,
+                                  fieldName:
+                                      field["Tarla_ismi"] ?? "Bilinmeyen Tarla",
+                                  location: field["Konum"] ?? "",
+                                  area: field["Boyut"] ?? "",
+                                  weather: null,
+                                  sensors: sensorList,
+                                );
+                              }
+                            },
                           );
                         },
                       );
