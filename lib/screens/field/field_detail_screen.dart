@@ -5,6 +5,9 @@ import 'package:flutter_bitirme/models/sensor_model.dart';
 import 'package:flutter_bitirme/screens/sensor/sensor_graph_screen.dart';
 import 'package:flutter_bitirme/screens/sensor/sensor_edit_screen.dart';
 import 'package:flutter_bitirme/theme/app_theme.dart';
+import 'package:flutter_bitirme/services/weather_service.dart';
+import 'package:flutter_bitirme/models/weather_forecast_day.dart';
+import 'package:flutter_bitirme/widgets/weather_forecast_widget.dart';
 
 import 'field_screen.dart';
 
@@ -273,6 +276,43 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                           ),
                         ),
                       ),
+                      SizedBox(height: 24),
+                      // HAVA DURUMU TAHMİNİ
+                      if (_fieldData?.enlem != null &&
+                          _fieldData?.boylam != null)
+                        FutureBuilder<Map<String, dynamic>?>(
+                          future: WeatherService().getForecastByLocation(
+                            double.parse(_fieldData!.enlem!),
+                            double.parse(_fieldData!.boylam!),
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            if (!snapshot.hasData || snapshot.data == null) {
+                              return Center(
+                                  child:
+                                      Text('Hava durumu tahmini alınamadı.'));
+                            }
+                            final forecastList =
+                                snapshot.data!["list"] as List<dynamic>?;
+                            if (forecastList == null || forecastList.isEmpty) {
+                              return Center(child: Text('Tahmin verisi yok.'));
+                            }
+                            final days = groupForecastByDay(forecastList);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('5 Günlük Hava Durumu Tahmini',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge),
+                                SizedBox(height: 12),
+                                WeatherForecastWidget(days: days),
+                              ],
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),
