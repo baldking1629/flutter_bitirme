@@ -110,7 +110,9 @@ class FieldCard extends StatelessWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.green.shade900.withOpacity(0.2)
+                          : Colors.green.shade50,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: theme.colorScheme.primary.withOpacity(0.10),
@@ -160,7 +162,9 @@ class FieldCard extends StatelessWidget {
                   alignment: Alignment.center,
                   padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.green.shade900.withOpacity(0.2)
+                        : Colors.green.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

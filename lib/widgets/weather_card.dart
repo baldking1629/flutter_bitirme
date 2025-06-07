@@ -17,7 +17,7 @@ class WeatherCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
       padding: const EdgeInsets.all(0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -48,7 +48,7 @@ class WeatherCard extends StatelessWidget {
                   Text(
                     weather.description,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.grey.shade800,
+                      color: theme.textTheme.titleMedium?.color,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -56,7 +56,7 @@ class WeatherCard extends StatelessWidget {
                   Text(
                     weather.cityName,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
+                      color: theme.textTheme.bodySmall?.color,
                       fontWeight: FontWeight.w400,
                       fontSize: 13,
                     ),
@@ -67,7 +67,9 @@ class WeatherCard extends StatelessWidget {
             // Sağ: Hava durumu ikonu
             Container(
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.green.shade900.withOpacity(0.2)
+                    : Colors.green.shade50,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.all(8),
