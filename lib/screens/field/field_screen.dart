@@ -83,7 +83,7 @@ class _FieldScreenState extends State<FieldScreen> {
         print("Boyut: ${data['Boyut']}");
         print("Enlem: ${data['Enlem']}");
         print("Boylam: ${data['Boylam']}");
-        print("Mahsul: ${data['Mahsul']}");
+        print("Mahsul: ${data['Tarla_icerigi']}");
 
         setState(() {
           _nameController.text = data['Tarla_ismi'] ?? '';
@@ -91,7 +91,7 @@ class _FieldScreenState extends State<FieldScreen> {
           _sizeController.text = data['Boyut'] ?? '';
           _latitude = data['Enlem']?.toString();
           _longitude = data['Boylam']?.toString();
-          _mahsulController.text = data['Mahsul'] ?? '';
+          _mahsulController.text = data['Tarla_icerigi'] ?? '';
         });
         print("✅ Tarla detayları yüklendi");
       } else {
@@ -230,7 +230,7 @@ class _FieldScreenState extends State<FieldScreen> {
             'Boyut': size,
             'Enlem': _latitude,
             'Boylam': _longitude,
-            'Mahsul': mahsul,
+            'Tarla_icerigi': mahsul,
             'Guncelleme_tarihi': FieldValue.serverTimestamp(),
           });
           print("✅ Tarla güncellendi");
@@ -244,7 +244,7 @@ class _FieldScreenState extends State<FieldScreen> {
             'Boyut': size,
             'Enlem': _latitude,
             'Boylam': _longitude,
-            'Mahsul': mahsul,
+            'Tarla_icerigi': mahsul,
             'Olusturulma_tarihi': FieldValue.serverTimestamp(),
           });
           print("✅ Yeni tarla eklendi. ID: ${docRef.id}");
@@ -355,12 +355,12 @@ class _FieldScreenState extends State<FieldScreen> {
                       TextFormField(
                         controller: _mahsulController,
                         decoration: InputDecoration(
-                          labelText: "Ekili Mahsul",
+                          labelText: "Tarla İçeriği",
                           prefixIcon: Icon(Icons.grass),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return "Lütfen ekili mahsulü girin";
+                            return "Lütfen tarla içeriğini girin";
                           }
                           return null;
                         },

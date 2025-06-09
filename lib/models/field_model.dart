@@ -8,7 +8,7 @@ class FieldModel {
   final String? enlem;
   final String? boylam;
   final String boyut;
-  final String mahsul;
+  final String Tarla_icerigi;
 
   FieldModel({
     required this.kullaniciId,
@@ -18,7 +18,7 @@ class FieldModel {
     this.enlem,
     this.boylam,
     required this.boyut,
-    required this.mahsul,
+    required this.Tarla_icerigi,
   });
 
   factory FieldModel.fromJson(Map<String, dynamic> json) {
@@ -30,7 +30,7 @@ class FieldModel {
       enlem: json['Enlem'] as String,
       boylam: json['Boylam'] as String,
       boyut: json['Boyut'] as String,
-      mahsul: json['Mahsul'] as String? ?? "Belirtilmemiş",
+      Tarla_icerigi: json['Tarla_icerigi'] as String? ?? "Belirtilmemiş",
     );
   }
 
@@ -43,7 +43,7 @@ class FieldModel {
       'Enlem': enlem,
       'Boylam': boylam,
       'Boyut': boyut,
-      'Mahsul': mahsul,
+      'Tarla_icerigi': Tarla_icerigi,
     };
   }
 }

@@ -126,7 +126,8 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                                 _buildInfoRow('Konum', '${_fieldData!.konum}'),
                                 _buildInfoRow(
                                     'Alan', '${_fieldData!.boyut} hektar'),
-                                _buildInfoRow('Mahsul', _fieldData!.mahsul),
+                                _buildInfoRow(
+                                    'Tarla İçeriği', _fieldData!.Tarla_icerigi),
                               ],
                             ),
                           ),
@@ -332,7 +333,7 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
       case 'Alan':
         icon = Icons.crop_square;
         break;
-      case 'Mahsul':
+      case 'Tarla İçeriği':
         icon = Icons.grass;
         break;
       default:

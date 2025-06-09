@@ -127,50 +127,71 @@ class FieldCard extends StatelessWidget {
               // Sensör verisi (sadece en güncel)
               SizedBox(height: 12),
               if (lastSensor != null)
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.blue.shade900.withOpacity(0.2)
-                        : Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(lastSensor!['icon'],
-                          color: theme.colorScheme.primary, size: 22),
-                      SizedBox(width: 10),
-                      Text(
-                        lastSensor!['name'],
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(width: 2),
-                      Text(
-                        lastSensor!['type'],
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        lastSensor!['value'],
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SensorGraphScreen(
+                          sensorId: lastSensor!['id'],
+                          sensorName: lastSensor!['name'],
                         ),
                       ),
-                      if (lastSensor!['timestamp'] != null) ...[
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.blue.shade900.withOpacity(0.2)
+                          : Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(lastSensor!['icon'],
+                            color: theme.colorScheme.primary, size: 22),
                         SizedBox(width: 10),
                         Text(
-                          DateFormat('dd.MM.yyyy HH:mm')
-                              .format(lastSensor!['timestamp']),
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: Colors.grey.shade600),
+                          lastSensor!['name'],
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
+                        SizedBox(width: 2),
+                        Text(
+                          lastSensor!['type'],
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "%",
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          lastSensor!['value'],
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        
+                        if (lastSensor!['timestamp'] != null) ...[
+                          SizedBox(width: 10),
+                          Text(
+                            DateFormat('dd.MM.yyyy HH:mm')
+                                .format(lastSensor!['timestamp']),
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: Colors.grey.shade600),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 )
               else

@@ -242,28 +242,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                       .orderBy('Tarih', descending: true)
                                       .limit(1)
                                       .get(),
-                                  builder: (context, kayitSnapshot) {
-                                    String value = '-';
-                                    DateTime? timestamp;
-                                    if (kayitSnapshot.hasData &&
-                                        kayitSnapshot.data!.docs.isNotEmpty) {
-                                      var kayit = kayitSnapshot.data!.docs.first
-                                          .data() as Map<String, dynamic>;
-                                      value = kayit['Deger']?.toString() ?? '-';
-                                      timestamp = (kayit['Tarih'] as Timestamp?)
-                                          ?.toDate();
+                                  builder: (context, recordSnapshot) {
+                                    if (recordSnapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                          child: CircularProgressIndicator());
                                     }
-                                    sensorList = [
-                                      {
-                                        'id': sensorId,
-                                        'name': s['Sensor_adi'] ?? 'Sensör',
-                                        'type':
-                                            s['Sensor_tipi'] ?? 'Bilinmeyen',
-                                        'value': value,
-                                        'icon': Icons.sensors,
-                                        'timestamp': timestamp,
-                                      }
-                                    ];
+
+                                    if (!recordSnapshot.hasData ||
+                                        recordSnapshot.data!.docs.isEmpty) {
+                                      return Text('Sensör verisi yok.');
+                                    }
+
+                                    var record = recordSnapshot.data!.docs.first
+                                        .data() as Map<String, dynamic>;
+                                    var timestamp =
+                                        (record['Tarih'] as Timestamp).toDate();
+
+                                    sensorList.add({
+                                      'id': sensorId,
+                                      'name': s['Sensor_adi'] ?? 'Sensör',
+                                      'type': s['Sensor_tipi'] ?? 'Bilinmiyor',
+                                      'value': '${record['Deger']}',
+                                      'icon': Icons.thermostat,
+                                      'timestamp': timestamp,
+                                    });
 
                                     // Hava durumu için FutureBuilder
                                     if (field['Enlem'] != null &&
@@ -281,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 "Bilinmeyen Tarla",
                                             location: field["Konum"] ?? "",
                                             area: field["Boyut"] ?? "",
-                                            mahsul: field["Mahsul"] ??
+                                            mahsul: field["Tarla_icerigi"] ??
                                                 "Belirtilmemiş",
                                             weather: weatherSnapshot.data,
                                             sensors: sensorList,
@@ -295,8 +298,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             "Bilinmeyen Tarla",
                                         location: field["Konum"] ?? "",
                                         area: field["Boyut"] ?? "",
-                                        mahsul:
-                                            field["Mahsul"] ?? "Belirtilmemiş",
+                                        mahsul: field["Tarla_icerigi"] ??
+                                            "Belirtilmemiş",
                                         weather: null,
                                         sensors: sensorList,
                                       );
@@ -320,8 +323,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             "Bilinmeyen Tarla",
                                         location: field["Konum"] ?? "",
                                         area: field["Boyut"] ?? "",
-                                        mahsul:
-                                            field["Mahsul"] ?? "Belirtilmemiş",
+                                        mahsul: field["Tarla_icerigi"] ??
+                                            "Belirtilmemiş",
                                         weather: weatherSnapshot.data,
                                         sensors: [],
                                       );
@@ -334,7 +337,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         "Bilinmeyen Tarla",
                                     location: field["Konum"] ?? "",
                                     area: field["Boyut"] ?? "",
-                                    mahsul: field["Mahsul"] ?? "Belirtilmemiş",
+                                    mahsul: field["Tarla_icerigi"] ??
+                                        "Belirtilmemiş",
                                     weather: null,
                                     sensors: [],
                                   );
