@@ -256,14 +256,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                     var record = recordSnapshot.data!.docs.first
                                         .data() as Map<String, dynamic>;
-                                    var timestamp =
-                                        (record['Tarih'] as Timestamp).toDate();
+                                    var timestamp = record['Zaman'] != null &&
+                                            record['Zaman'] is Timestamp
+                                        ? (record['Zaman'] as Timestamp)
+                                            .toDate()
+                                        : DateTime.now();
+
+                                    final sensorValue =
+                                        (record['Deger'] as num).toDouble();
+                                    final sensorData = {
+                                      'type': record['Tip'],
+                                      'value': sensorValue,
+                                      'timestamp': timestamp,
+                                    };
 
                                     sensorList.add({
                                       'id': sensorId,
                                       'name': s['Sensor_adi'] ?? 'Sensör',
                                       'type': s['Sensor_tipi'] ?? 'Bilinmiyor',
-                                      'value': '${record['Deger']}',
+                                      'value': sensorValue,
                                       'icon': Icons.thermostat,
                                       'timestamp': timestamp,
                                     });

@@ -8,13 +8,21 @@ import 'package:flutter_bitirme/theme/app_theme.dart';
 import 'package:flutter_bitirme/services/weather_service.dart';
 import 'package:flutter_bitirme/models/weather_forecast_day.dart';
 import 'package:flutter_bitirme/widgets/weather_forecast_widget.dart';
+import 'package:flutter_bitirme/services/gemini_service.dart';
+import 'package:flutter_bitirme/models/irrigation_advice_model.dart';
+import 'package:flutter_bitirme/models/weather_model.dart';
 
 import 'field_screen.dart';
 
 class FieldDetailScreen extends StatefulWidget {
   final String fieldId;
+  final IrrigationAdvice? irrigationAdvice;
 
-  const FieldDetailScreen({Key? key, required this.fieldId}) : super(key: key);
+  const FieldDetailScreen({
+    Key? key,
+    required this.fieldId,
+    this.irrigationAdvice,
+  }) : super(key: key);
 
   @override
   _FieldDetailScreenState createState() => _FieldDetailScreenState();
@@ -279,6 +287,97 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                         ),
                       ),
                       SizedBox(height: 24),
+                      // SULAMA ÖNERİLERİ
+                      Card(
+                        child: Padding(
+                          padding: AppTheme.cardPadding,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Sulama Önerileri',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.refresh),
+                                    onPressed: () {
+                                      setState(() {});
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              if (widget.irrigationAdvice?.sulamaGerekiyorMu == 'Sensör bulunmadığı için öneri verilemiyor' || widget.irrigationAdvice == null)
+                                Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.water_drop,
+                                        size: 48,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.5),
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Sulama önerisi için sensör gerekli',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Sulama önerileri almak için tarlanıza sensör ekleyin',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildAdviceRow(
+                                      'Sulama Gerekiyor Mu',
+                                      widget
+                                          .irrigationAdvice!.sulamaGerekiyorMu,
+                                      Icons.water_drop,
+                                    ),
+                                    SizedBox(height: 12),
+                                    _buildAdviceRow(
+                                      'Su Miktarı',
+                                      widget.irrigationAdvice!.suMiktari,
+                                      Icons.water,
+                                    ),
+                                    SizedBox(height: 12),
+                                    _buildAdviceRow(
+                                      'En Uygun Zaman',
+                                      widget.irrigationAdvice!.enUygunZaman,
+                                      Icons.access_time,
+                                    ),
+                                    SizedBox(height: 12),
+                                    _buildAdviceRow(
+                                      'Diğer Öneriler',
+                                      widget.irrigationAdvice!.digerOneriler,
+                                      Icons.lightbulb,
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 24),
                       // HAVA DURUMU TAHMİNİ
                       if (_fieldData?.enlem != null &&
                           _fieldData?.boylam != null)
@@ -379,6 +478,34 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAdviceRow(String title, String value, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
