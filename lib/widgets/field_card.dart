@@ -173,7 +173,6 @@ class FieldCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      
                       if (lastSensor!['timestamp'] != null) ...[
                         const SizedBox(width: 10),
                         Text(

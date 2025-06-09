@@ -9,8 +9,7 @@ class GeminiService {
   GeminiService()
       : _model = GenerativeModel(
           model: 'gemini-2.0-flash',
-          apiKey:
-              '', // Gemini API anahtarınızı buraya ekleyin
+          apiKey: '', // Gemini API anahtarınızı buraya ekleyin
         );
 
   Future<IrrigationAdvice> getIrrigationAdvice({

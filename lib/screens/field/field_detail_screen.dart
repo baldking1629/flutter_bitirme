@@ -312,7 +312,9 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                                 ],
                               ),
                               SizedBox(height: 16),
-                              if (widget.irrigationAdvice?.sulamaGerekiyorMu == 'Sensör bulunmadığı için öneri verilemiyor' || widget.irrigationAdvice == null)
+                              if (widget.irrigationAdvice?.sulamaGerekiyorMu ==
+                                      'Sensör bulunmadığı için öneri verilemiyor' ||
+                                  widget.irrigationAdvice == null)
                                 Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
