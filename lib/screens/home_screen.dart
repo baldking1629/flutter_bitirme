@@ -281,6 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 "Bilinmeyen Tarla",
                                             location: field["Konum"] ?? "",
                                             area: field["Boyut"] ?? "",
+                                            mahsul: field["Mahsul"] ??
+                                                "Belirtilmemiş",
                                             weather: weatherSnapshot.data,
                                             sensors: sensorList,
                                           );
@@ -293,6 +295,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             "Bilinmeyen Tarla",
                                         location: field["Konum"] ?? "",
                                         area: field["Boyut"] ?? "",
+                                        mahsul:
+                                            field["Mahsul"] ?? "Belirtilmemiş",
                                         weather: null,
                                         sensors: sensorList,
                                       );
@@ -316,6 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             "Bilinmeyen Tarla",
                                         location: field["Konum"] ?? "",
                                         area: field["Boyut"] ?? "",
+                                        mahsul:
+                                            field["Mahsul"] ?? "Belirtilmemiş",
                                         weather: weatherSnapshot.data,
                                         sensors: [],
                                       );
@@ -328,6 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         "Bilinmeyen Tarla",
                                     location: field["Konum"] ?? "",
                                     area: field["Boyut"] ?? "",
+                                    mahsul: field["Mahsul"] ?? "Belirtilmemiş",
                                     weather: null,
                                     sensors: [],
                                   );

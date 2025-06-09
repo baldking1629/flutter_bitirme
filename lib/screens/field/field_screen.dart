@@ -16,9 +16,11 @@ class FieldScreen extends StatefulWidget {
 }
 
 class _FieldScreenState extends State<FieldScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _sizeController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _sizeController = TextEditingController();
+  final _mahsulController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -35,6 +37,9 @@ class _FieldScreenState extends State<FieldScreen> {
     print("🔄 initState çağrıldı");
     print("fieldId: ${widget.fieldId}");
     print("_isEditing: $_isEditing");
+    if (_isEditing) {
+      _loadFieldDetails();
+    }
   }
 
   @override
@@ -47,6 +52,15 @@ class _FieldScreenState extends State<FieldScreen> {
       _isFirstLoad = false;
       _loadFieldDetails();
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _locationController.dispose();
+    _sizeController.dispose();
+    _mahsulController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFieldDetails() async {
@@ -69,6 +83,7 @@ class _FieldScreenState extends State<FieldScreen> {
         print("Boyut: ${data['Boyut']}");
         print("Enlem: ${data['Enlem']}");
         print("Boylam: ${data['Boylam']}");
+        print("Mahsul: ${data['Mahsul']}");
 
         setState(() {
           _nameController.text = data['Tarla_ismi'] ?? '';
@@ -76,6 +91,7 @@ class _FieldScreenState extends State<FieldScreen> {
           _sizeController.text = data['Boyut'] ?? '';
           _latitude = data['Enlem']?.toString();
           _longitude = data['Boylam']?.toString();
+          _mahsulController.text = data['Mahsul'] ?? '';
         });
         print("✅ Tarla detayları yüklendi");
       } else {
@@ -189,12 +205,14 @@ class _FieldScreenState extends State<FieldScreen> {
     String name = _nameController.text.trim();
     String location = _locationController.text.trim();
     String size = _sizeController.text.trim();
+    String mahsul = _mahsulController.text.trim();
 
     print("🔍 Kaydetme işlemi başladı:");
     print("Kullanıcı ID: $userId");
     print("Tarla Adı: $name");
     print("Konum: $location");
     print("Boyut: $size");
+    print("Mahsul: $mahsul");
     print("Enlem: $_latitude");
     print("Boylam: $_longitude");
     print("Düzenleme Modu: $_isEditing");
@@ -212,6 +230,7 @@ class _FieldScreenState extends State<FieldScreen> {
             'Boyut': size,
             'Enlem': _latitude,
             'Boylam': _longitude,
+            'Mahsul': mahsul,
             'Guncelleme_tarihi': FieldValue.serverTimestamp(),
           });
           print("✅ Tarla güncellendi");
@@ -225,6 +244,7 @@ class _FieldScreenState extends State<FieldScreen> {
             'Boyut': size,
             'Enlem': _latitude,
             'Boylam': _longitude,
+            'Mahsul': mahsul,
             'Olusturulma_tarihi': FieldValue.serverTimestamp(),
           });
           print("✅ Yeni tarla eklendi. ID: ${docRef.id}");
@@ -287,75 +307,110 @@ class _FieldScreenState extends State<FieldScreen> {
       ),
       body: SingleChildScrollView(
         padding: AppTheme.screenPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              child: Padding(
-                padding: AppTheme.cardPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Tarla Bilgileri",
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: "Tarla Adı",
-                        prefixIcon: Icon(Icons.agriculture),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                child: Padding(
+                  padding: AppTheme.cardPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Tarla Bilgileri",
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _sizeController,
-                      decoration: InputDecoration(
-                        labelText: "Alan (hektar)",
-                        prefixIcon: Icon(Icons.crop_square),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: "Tarla Adı",
+                          prefixIcon: Icon(Icons.agriculture),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen tarla adını girin";
+                          }
+                          return null;
+                        },
                       ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _locationController,
-                            decoration: InputDecoration(
-                              labelText: "Konum",
-                              prefixIcon: Icon(Icons.location_on),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _sizeController,
+                        decoration: InputDecoration(
+                          labelText: "Alan (hektar)",
+                          prefixIcon: Icon(Icons.crop_square),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen tarla alanını girin";
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _mahsulController,
+                        decoration: InputDecoration(
+                          labelText: "Ekili Mahsul",
+                          prefixIcon: Icon(Icons.grass),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen ekili mahsulü girin";
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _locationController,
+                              decoration: InputDecoration(
+                                labelText: "Konum",
+                                prefixIcon: Icon(Icons.location_on),
+                              ),
+                              readOnly: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Lütfen konum seçin";
+                                }
+                                return null;
+                              },
                             ),
-                            readOnly: true,
                           ),
-                        ),
-                        SizedBox(width: 8),
-                        IconButton(
-                          icon: _isLoadingLocation
-                              ? SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Icon(Icons.my_location),
-                          onPressed: _getCurrentLocation,
-                        ),
-                      ],
-                    ),
-                  ],
+                          SizedBox(width: 8),
+                          IconButton(
+                            icon: _isLoadingLocation
+                                ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(Icons.my_location),
+                            onPressed: _getCurrentLocation,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _saveField,
-              icon: Icon(_isEditing ? Icons.save : Icons.add),
-              label: Text(_isEditing ? "Kaydet" : "Tarla Ekle"),
-            ),
-          ],
+              SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _saveField,
+                icon: Icon(_isEditing ? Icons.save : Icons.add),
+                label: Text(_isEditing ? "Kaydet" : "Tarla Ekle"),
+              ),
+            ],
+          ),
         ),
       ),
     );

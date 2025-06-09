@@ -13,6 +13,7 @@ class WeatherModel {
   final String cityName;
   final DateTime sunrise;
   final DateTime sunset;
+  final bool isRaining;
 
   WeatherModel({
     required this.temperature,
@@ -29,9 +30,24 @@ class WeatherModel {
     required this.cityName,
     required this.sunrise,
     required this.sunset,
+    required this.isRaining,
   });
 
   factory WeatherModel.fromJson(Map<String, dynamic> json) {
+    // Yağmur durumunu kontrol et
+    bool isRaining = false;
+    String weatherMain = json['weather'][0]['main'].toString().toLowerCase();
+    String weatherDesc =
+        json['weather'][0]['description'].toString().toLowerCase();
+
+    if (weatherMain.contains('rain') ||
+        weatherDesc.contains('yağmur') ||
+        weatherDesc.contains('rain') ||
+        weatherMain.contains('drizzle') ||
+        weatherDesc.contains('çisenti')) {
+      isRaining = true;
+    }
+
     return WeatherModel(
       temperature: json['main']['temp'].toDouble(),
       feelsLike: json['main']['feels_like'].toDouble(),
@@ -48,6 +64,7 @@ class WeatherModel {
       sunrise:
           DateTime.fromMillisecondsSinceEpoch(json['sys']['sunrise'] * 1000),
       sunset: DateTime.fromMillisecondsSinceEpoch(json['sys']['sunset'] * 1000),
+      isRaining: isRaining,
     );
   }
 
