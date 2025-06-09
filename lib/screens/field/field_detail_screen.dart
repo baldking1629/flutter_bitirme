@@ -383,38 +383,48 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                       // HAVA DURUMU TAHMİNİ
                       if (_fieldData?.enlem != null &&
                           _fieldData?.boylam != null)
-                        FutureBuilder<Map<String, dynamic>?>(
-                          future: WeatherService().getForecastByLocation(
-                            double.parse(_fieldData!.enlem!),
-                            double.parse(_fieldData!.boylam!),
+                        Card(
+                          child: Padding(
+                            padding: AppTheme.cardPadding,
+                            child: FutureBuilder(
+                              future: WeatherService().getForecastByLocation(
+                                double.parse(_fieldData!.enlem!),
+                                double.parse(_fieldData!.boylam!),
+                              ),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                }
+                                if (!snapshot.hasData ||
+                                    snapshot.data == null) {
+                                  return Center(
+                                      child: Text(
+                                          'Hava durumu tahmini alınamadı.'));
+                                }
+                                final forecastList =
+                                    snapshot.data!["list"] as List<dynamic>?;
+                                if (forecastList == null ||
+                                    forecastList.isEmpty) {
+                                  return Center(
+                                      child: Text('Tahmin verisi yok.'));
+                                }
+                                final days = groupForecastByDay(forecastList);
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('5 Günlük Hava Durumu Tahmini',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge),
+                                    SizedBox(height: 12),
+                                    WeatherForecastWidget(days: days),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            }
-                            if (!snapshot.hasData || snapshot.data == null) {
-                              return Center(
-                                  child:
-                                      Text('Hava durumu tahmini alınamadı.'));
-                            }
-                            final forecastList =
-                                snapshot.data!["list"] as List<dynamic>?;
-                            if (forecastList == null || forecastList.isEmpty) {
-                              return Center(child: Text('Tahmin verisi yok.'));
-                            }
-                            final days = groupForecastByDay(forecastList);
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('5 Günlük Hava Durumu Tahmini',
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge),
-                                SizedBox(height: 12),
-                                WeatherForecastWidget(days: days),
-                              ],
-                            );
-                          },
                         ),
                     ],
                   ),
