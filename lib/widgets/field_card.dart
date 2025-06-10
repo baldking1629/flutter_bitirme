@@ -5,10 +5,13 @@ import '../models/irrigation_model.dart';
 import 'weather_card.dart';
 import '../screens/sensor/sensor_graph_screen.dart';
 import '../screens/field/field_detail_screen.dart';
+import '../screens/sulama_gecmisi_screen.dart';
 import '../services/gemini_service.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/sulama_kaydi_provider.dart';
 
-class FieldCard extends StatelessWidget {
+class FieldCard extends StatefulWidget {
   final String fieldId;
   final String fieldName;
   final String location;
@@ -29,26 +32,41 @@ class FieldCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<FieldCard> createState() => _FieldCardState();
+}
+
+class _FieldCardState extends State<FieldCard> {
+  @override
+  void initState() {
+    super.initState();
+    // Tarla için sulama kayıtlarını dinlemeye başla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SulamaKaydiProvider>(context, listen: false)
+          .tarlaSulamaKayitlariniDinle(widget.fieldId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     // En güncel sensör verisini bul (timestamp'e göre)
     Map<String, dynamic>? lastSensor;
-    if (sensors.isNotEmpty) {
-      sensors.sort((a, b) {
+    if (widget.sensors.isNotEmpty) {
+      widget.sensors.sort((a, b) {
         final aTime = a['timestamp'] as DateTime?;
         final bTime = b['timestamp'] as DateTime?;
         if (aTime == null || bTime == null) return 0;
         return bTime.compareTo(aTime);
       });
-      lastSensor = sensors.first;
+      lastSensor = widget.sensors.first;
     }
 
     // Sulama modeli için gerekli verileri hazırla
-    final humidity = weather?.humidity ?? 50.0;
-    final temperature = weather?.temperature ?? 20.0;
+    final humidity = widget.weather?.humidity ?? 50.0;
+    final temperature = widget.weather?.temperature ?? 20.0;
     final soilMoisture = lastSensor?['value'] as double? ?? 50.0;
-    final isRaining = weather?.isRaining ?? false;
+    final isRaining = widget.weather?.isRaining ?? false;
 
     // Sensör değerini göster
     final sensorValue = lastSensor?['value'] as double? ?? 0.0;
@@ -73,12 +91,12 @@ class FieldCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        fieldName,
+                        widget.fieldName,
                         style: theme.textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        location,
+                        widget.location,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.grey.shade600,
                         ),
@@ -95,8 +113,8 @@ class FieldCard extends StatelessWidget {
                       humidity: humidity.toDouble(),
                       soilMoisture: soilMoisture,
                       isRaining: isRaining,
-                      cropType: mahsul,
-                      hasSensor: sensors.isNotEmpty,
+                      cropType: widget.mahsul,
+                      hasSensor: widget.sensors.isNotEmpty,
                     );
 
                     if (!context.mounted) return;
@@ -105,7 +123,7 @@ class FieldCard extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => FieldDetailScreen(
-                          fieldId: fieldId,
+                          fieldId: widget.fieldId,
                           irrigationAdvice: advice,
                         ),
                       ),
@@ -115,7 +133,7 @@ class FieldCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            if (weather != null) WeatherCard(weather: weather!),
+            if (widget.weather != null) WeatherCard(weather: widget.weather!),
             const SizedBox(height: 12),
             if (lastSensor != null)
               GestureDetector(
@@ -193,8 +211,8 @@ class FieldCard extends StatelessWidget {
                 humidity: humidity.toDouble(),
                 soilMoisture: soilMoisture,
                 isRaining: isRaining,
-                cropType: mahsul,
-                hasSensor: sensors.isNotEmpty,
+                cropType: widget.mahsul,
+                hasSensor: widget.sensors.isNotEmpty,
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -281,6 +299,195 @@ class FieldCard extends StatelessWidget {
                   ),
                 );
               },
+            ),
+            const SizedBox(height: 12),
+            ChangeNotifierProvider(
+              create: (_) {
+                final provider = SulamaKaydiProvider();
+                provider.tarlaSulamaKayitlariniDinle(widget.fieldId);
+                return provider;
+              },
+              child: Consumer<SulamaKaydiProvider>(
+                builder: (context, provider, child) {
+                  if (provider.yukleniyor) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (provider.hata != null) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.red.shade900.withOpacity(0.2)
+                            : Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Hata: ${provider.hata}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.red,
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (provider.sulamaKayitlari.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.orange.shade900.withOpacity(0.2)
+                            : Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.history,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Son Sulama',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Henüz sulama kaydı yok',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final sonKayit = provider.sulamaKayitlari.first;
+                  final tarih = DateFormat('dd.MM.yyyy HH:mm')
+                      .format(sonKayit.tarih.toDate());
+                  final durum =
+                      sonKayit.tamamlandiMi ? 'Tamamlandı' : 'Devam Ediyor';
+                  final durumIcon = sonKayit.tamamlandiMi
+                      ? Icons.check_circle
+                      : Icons.hourglass_empty;
+                  final durumColor =
+                      sonKayit.tamamlandiMi ? Colors.green : Colors.orange;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SulamaGecmisiScreen(
+                            tarlaId: widget.fieldId,
+                            tarlaAdi: widget.fieldName,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 18),
+                      decoration: BoxDecoration(
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.green.shade900.withOpacity(0.18)
+                            : Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.10),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history,
+                              color: theme.colorScheme.primary, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Son Sulama',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.timer,
+                                        size: 18, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Süre: ',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.w500),
+                                    ),
+                                    Text(
+                                      '${sonKayit.sulamaZamani} saniye',
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(Icons.calendar_today,
+                                        size: 16, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Tarih: ',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.w500),
+                                    ),
+                                    Text(
+                                      tarih,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            children: [
+                              Icon(
+                                durumIcon,
+                                color: durumColor,
+                                size: 28,
+                              ),
+                              Text(
+                                durum,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: durumColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
