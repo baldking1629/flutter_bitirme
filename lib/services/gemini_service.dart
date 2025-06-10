@@ -9,7 +9,8 @@ class GeminiService {
   GeminiService()
       : _model = GenerativeModel(
           model: 'gemini-2.0-flash',
-          apiKey: '', // Gemini API anahtarınızı buraya ekleyin
+          apiKey:
+              '', // Gemini API anahtarınızı buraya ekleyin
         );
 
   Future<IrrigationAdvice> getIrrigationAdvice({
@@ -19,6 +20,7 @@ class GeminiService {
     required bool isRaining,
     required String cropType,
     required bool hasSensor,
+    required String area,
   }) async {
     try {
       if (!hasSensor) {
@@ -33,11 +35,12 @@ Aşağıdaki verilere göre sulama önerileri ver:
 - Toprak Nemi: $soilMoisture%  
 - Yağmur Durumu: ${isRaining ? 'Yağmur yağıyor' : 'Yağmur yağmıyor'}  
 - Mahsul Türü: $cropType  
+- Tarla Alanı: $area hektar
 
 Lütfen sadece aşağıdaki başlıklarla cevap ver:
 
 1. sulamaGerekiyorMu: Sulama yapılmalı mı? (Evet/Hayır ve kısa gerekçe)  
-2. suMiktari: Ne kadar su verilmeli? (Litre cinsinden)  
+2. suMiktari: Ne kadar su verilmeli? (Litre cinsinden ve tarla alanına göre net bir cevap ver ve mesela 150000'i 150.000 veya 150,000 gibi verme yani araına nokta falan koyma)  
 3. enUygunZaman: Sulama için en uygun zaman nedir? (Sabah/Öğlen/Akşam gibi)  
 4. digerOneriler: Başka önerilerin var mı? (Kısa ve öz)  
 

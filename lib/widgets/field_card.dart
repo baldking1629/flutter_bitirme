@@ -115,6 +115,7 @@ class _FieldCardState extends State<FieldCard> {
                       isRaining: isRaining,
                       cropType: widget.mahsul,
                       hasSensor: widget.sensors.isNotEmpty,
+                      area: widget.area,
                     );
 
                     if (!context.mounted) return;
@@ -213,6 +214,7 @@ class _FieldCardState extends State<FieldCard> {
                 isRaining: isRaining,
                 cropType: widget.mahsul,
                 hasSensor: widget.sensors.isNotEmpty,
+                area: widget.area,
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -260,43 +262,140 @@ class _FieldCardState extends State<FieldCard> {
                   );
                 }
 
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.green.shade900.withOpacity(0.2)
-                        : Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.2),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                final advice = snapshot.data!;
+                final suMiktariStr = advice.suMiktari;
+                final sulamaGerekiyor =
+                    advice.sulamaGerekiyorMu.toLowerCase().contains('evet') ||
+                        advice.sulamaGerekiyorMu
+                            .toLowerCase()
+                            .contains('gerekiyor');
+
+                double? litre;
+                if (double.tryParse(suMiktariStr) != null) {
+                  litre = double.tryParse(suMiktariStr);
+                }
+                // Devam eden sulama kaydı kontrolü
+                final sulamaProvider =
+                    Provider.of<SulamaKaydiProvider>(context, listen: false);
+                final devamEdenKayitVar = sulamaProvider
+                        .sulamaKayitlari.isNotEmpty &&
+                    sulamaProvider.sulamaKayitlari.first.tamamlandiMi == false;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.green.shade900.withOpacity(0.2)
+                            : Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.water_drop,
-                            color: theme.colorScheme.primary,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.water_drop,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Sulama Önerisi',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Sulama Önerisi',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            advice.sulamaGerekiyorMu,
+                            style: theme.textTheme.bodyMedium,
                           ),
+                          if (advice.suMiktari.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6.0),
+                              child: Text(
+                                  'Önerilen Su Miktarı: ${advice.suMiktari}',
+                                  style: theme.textTheme.bodyMedium),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        snapshot.data?.sulamaGerekiyorMu ?? 'Öneri alınamadı.',
-                        style: theme.textTheme.bodyMedium,
+                    ),
+                    if (sulamaGerekiyor &&
+                        litre != null &&
+                        litre > 0 &&
+                        !devamEdenKayitVar)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            top: 8.0, left: 2.0, right: 2.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: SizedBox(
+                            width: 260,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.add_task),
+                              label:
+                                  const Text('Sulama kaydı oluşturulsun mu?'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 8),
+                                textStyle: theme.textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: () async {
+                                final saniye = (litre! * 60).round();
+                                final provider =
+                                    Provider.of<SulamaKaydiProvider>(context,
+                                        listen: false);
+                                final onay = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Otomatik Sulama Kaydı'),
+                                    content: Text(
+                                        'Bu tarlaya $litre litre su için $saniye saniyelik sulama kaydı oluşturulsun mu?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text('Hayır'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text('Evet'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (onay == true) {
+                                  await provider.yeniSulamaKaydiEkle(
+                                      widget.fieldId, saniye);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Sulama kaydı başarıyla oluşturuldu!')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                  ],
                 );
               },
             ),
@@ -393,7 +492,7 @@ class _FieldCardState extends State<FieldCard> {
                     child: Container(
                       margin: const EdgeInsets.only(top: 8),
                       padding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 18),
+                          vertical: 14, horizontal: 14),
                       decoration: BoxDecoration(
                         color: theme.brightness == Brightness.dark
                             ? Colors.green.shade900.withOpacity(0.18)
@@ -411,11 +510,11 @@ class _FieldCardState extends State<FieldCard> {
                         ),
                       ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.history,
                               color: theme.colorScheme.primary, size: 28),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,46 +526,22 @@ class _FieldCardState extends State<FieldCard> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.timer,
-                                        size: 18, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Süre: ',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w500),
-                                    ),
-                                    Text(
-                                      '${sonKayit.sulamaZamani} saniye',
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Süre: ${sonKayit.sulamaZamani} saniye',
+                                  style: theme.textTheme.bodyMedium,
                                 ),
-                                Row(
-                                  children: [
-                                    Icon(Icons.calendar_today,
-                                        size: 16, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Tarih: ',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w500),
-                                    ),
-                                    Text(
-                                      tarih,
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ],
+                                Text(
+                                  'Tarih: $tarih',
+                                  style: theme.textTheme.bodyMedium,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
                           Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 durumIcon,
