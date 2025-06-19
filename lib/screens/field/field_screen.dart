@@ -340,13 +340,13 @@ class _FieldScreenState extends State<FieldScreen> {
                       TextFormField(
                         controller: _sizeController,
                         decoration: InputDecoration(
-                          labelText: "Alan (hektar)",
+                          labelText: "Alan (m²)",
                           prefixIcon: Icon(Icons.crop_square),
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return "Lütfen tarla alanını girin";
+                            return "Lütfen tarla alanını girin (m²)";
                           }
                           return null;
                         },

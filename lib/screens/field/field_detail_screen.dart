@@ -133,7 +133,7 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
                                     'Tarla Adı', _fieldData!.tarlaIsmi),
                                 _buildInfoRow('Konum', '${_fieldData!.konum}'),
                                 _buildInfoRow(
-                                    'Alan', '${_fieldData!.boyut} hektar'),
+                                    'Alan', '${_fieldData!.boyut} m²'),
                                 _buildInfoRow(
                                     'Tarla İçeriği', _fieldData!.Tarla_icerigi),
                               ],

@@ -256,9 +256,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                     var record = recordSnapshot.data!.docs.first
                                         .data() as Map<String, dynamic>;
-                                    var timestamp = record['Zaman'] != null &&
-                                            record['Zaman'] is Timestamp
-                                        ? (record['Zaman'] as Timestamp)
+                                    var timestamp = record['Tarih'] != null &&
+                                            record['Tarih'] is Timestamp
+                                        ? (record['Tarih'] as Timestamp)
                                             .toDate()
                                         : DateTime.now();
 
@@ -294,7 +294,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                             fieldName: field["Tarla_ismi"] ??
                                                 "Bilinmeyen Tarla",
                                             location: field["Konum"] ?? "",
-                                            area: field["Boyut"] ?? "",
+                                            area: field["Boyut"] != null &&
+                                                    field["Boyut"]
+                                                        .toString()
+                                                        .isNotEmpty
+                                                ? "${field["Boyut"]} m²"
+                                                : "",
                                             mahsul: field["Tarla_icerigi"] ??
                                                 "Belirtilmemiş",
                                             weather: weatherSnapshot.data,
@@ -308,7 +313,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fieldName: field["Tarla_ismi"] ??
                                             "Bilinmeyen Tarla",
                                         location: field["Konum"] ?? "",
-                                        area: field["Boyut"] ?? "",
+                                        area: field["Boyut"] != null &&
+                                                field["Boyut"]
+                                                    .toString()
+                                                    .isNotEmpty
+                                            ? "${field["Boyut"]} m²"
+                                            : "",
                                         mahsul: field["Tarla_icerigi"] ??
                                             "Belirtilmemiş",
                                         weather: null,
@@ -333,7 +343,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fieldName: field["Tarla_ismi"] ??
                                             "Bilinmeyen Tarla",
                                         location: field["Konum"] ?? "",
-                                        area: field["Boyut"] ?? "",
+                                        area: field["Boyut"] != null &&
+                                                field["Boyut"]
+                                                    .toString()
+                                                    .isNotEmpty
+                                            ? "${field["Boyut"]} m²"
+                                            : "",
                                         mahsul: field["Tarla_icerigi"] ??
                                             "Belirtilmemiş",
                                         weather: weatherSnapshot.data,
@@ -347,7 +362,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fieldName: field["Tarla_ismi"] ??
                                         "Bilinmeyen Tarla",
                                     location: field["Konum"] ?? "",
-                                    area: field["Boyut"] ?? "",
+                                    area: field["Boyut"] != null &&
+                                            field["Boyut"].toString().isNotEmpty
+                                        ? "${field["Boyut"]} m²"
+                                        : "",
                                     mahsul: field["Tarla_icerigi"] ??
                                         "Belirtilmemiş",
                                     weather: null,

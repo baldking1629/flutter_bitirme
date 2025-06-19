@@ -84,7 +84,7 @@ class FieldListScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       Text(
-                        "Alan: ${field['Boyut']} hektar",
+                        "Alan: ${field['Boyut']} m²",
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],

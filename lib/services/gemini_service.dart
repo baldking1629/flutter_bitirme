@@ -10,7 +10,7 @@ class GeminiService {
       : _model = GenerativeModel(
           model: 'gemini-2.0-flash',
           apiKey:
-              '', // Gemini API anahtarınızı buraya ekleyin
+              'AIzaSyAa7g3mdilK9cfozMT65wQqZG0T-C3pxX8', // Gemini API anahtarınızı buraya ekleyin
         );
 
   Future<IrrigationAdvice> getIrrigationAdvice({
@@ -35,7 +35,7 @@ Aşağıdaki verilere göre sulama önerileri ver:
 - Toprak Nemi: $soilMoisture%  
 - Yağmur Durumu: ${isRaining ? 'Yağmur yağıyor' : 'Yağmur yağmıyor'}  
 - Mahsul Türü: $cropType  
-- Tarla Alanı: $area hektar
+- Tarla Alanı: $area metrekare
 
 Lütfen sadece aşağıdaki başlıklarla cevap ver:
 
